@@ -1,0 +1,314 @@
+@import "tailwindcss";
+
+/* =============================================================
+   DESIGN TOKENS  (Tailwind v4 CSS-first config)
+   These become utilities automatically: bg-ink, text-cream,
+   border-ember, font-display, ease-soft ...
+   ============================================================= */
+@theme {
+  --color-ink:   #000000;
+  --color-bark:  #1F150C;
+  --color-ember: #412D15;
+  --color-cream: #E1DCC9;
+  --color-warm:  #6B4A24;
+
+  --font-display: "Instrument Serif", Georgia, "Times New Roman", serif;
+  --font-sans: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --ease-soft: cubic-bezier(.16, 1, .3, 1);
+  --ease-swift: cubic-bezier(.22, .61, .36, 1);
+}
+
+@layer base {
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--color-ink);
+    color: color-mix(in srgb, var(--color-cream) 80%, transparent);
+    font-family: var(--font-sans);
+    font-weight: 300;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  body.is-locked { overflow: hidden; }
+
+  ::selection { background: var(--color-ember); color: var(--color-cream); }
+
+  :focus-visible {
+    outline: 2px solid var(--color-cream);
+    outline-offset: 4px;
+    border-radius: 2px;
+  }
+}
+
+/* =============================================================
+   SCROLL REVEAL
+   Uses the standalone `translate` property, never `transform`,
+   so component hover transforms can't collide with it.
+   ============================================================= */
+.reveal {
+  opacity: 0;
+  translate: 0 26px;
+  transition: opacity .9s var(--ease-soft), translate .9s var(--ease-soft),
+              color .35s, border-color .35s, background-color .35s;
+}
+.reveal-in { opacity: 1; translate: 0 0; }
+
+/* =============================================================
+   ATMOSPHERE
+   ============================================================= */
+.grain {
+  position: fixed;
+  inset: -150%;
+  z-index: 60;
+  pointer-events: none;
+  opacity: .05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain 7s steps(6, end) infinite;
+}
+@keyframes grain {
+  0%   { transform: translate(0, 0); }
+  20%  { transform: translate(-4%, 3%); }
+  40%  { transform: translate(3%, -4%); }
+  60%  { transform: translate(-3%, -3%); }
+  80%  { transform: translate(4%, 2%); }
+  100% { transform: translate(0, 0); }
+}
+
+.glow {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(420px circle at var(--gx, 50%) var(--gy, 30%),
+    rgba(107, 74, 36, .30), rgba(65, 45, 21, .10) 45%, transparent 70%);
+}
+
+.cur, .cur-ring {
+  position: fixed;
+  top: 0; left: 0;
+  z-index: 90;
+  pointer-events: none;
+}
+.cur {
+  width: 5px; height: 5px;
+  margin: -2.5px 0 0 -2.5px;
+  border-radius: 50%;
+  background: var(--color-cream);
+}
+.cur-ring {
+  width: 34px; height: 34px;
+  margin: -17px 0 0 -17px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--color-cream) 42%, transparent);
+  transition: width .3s var(--ease-swift), height .3s var(--ease-swift),
+              margin .3s var(--ease-swift), border-color .3s, background-color .3s;
+}
+.cur-ring.is-hot {
+  width: 56px; height: 56px;
+  margin: -28px 0 0 -28px;
+  border-color: var(--color-cream);
+  background: rgba(225, 220, 201, .06);
+}
+body.cursor-on,
+body.cursor-on a,
+body.cursor-on button { cursor: none; }
+
+/* =============================================================
+   BUTTONS — background-size wipe (no pseudo-element stacking bugs)
+   ============================================================= */
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 24px;
+  font-size: 13.5px;
+  letter-spacing: .04em;
+  color: var(--color-cream);
+  border: 1px solid rgba(225, 220, 201, .18);
+  background-color: rgba(225, 220, 201, .02);
+  background-image: linear-gradient(var(--color-ember), var(--color-ember));
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 100% 0;
+  transition: border-color .4s var(--ease-swift), color .35s,
+              transform .25s var(--ease-swift), background-size .5s var(--ease-soft);
+  will-change: transform;
+}
+.btn:hover, .btn:focus-visible { border-color: var(--color-ember); background-size: 100% 100%; }
+.btn .btn-ico { flex: none; transition: transform .45s var(--ease-swift); }
+.btn:hover .btn-ico { transform: translate(3px, -3px); }
+
+.btn-solid {
+  background-color: var(--color-cream);
+  background-image: linear-gradient(#fff, #fff);
+  color: var(--color-ink);
+  border-color: var(--color-cream);
+}
+.btn-solid:hover, .btn-solid:focus-visible { color: var(--color-ink); border-color: #fff; }
+.btn-solid:hover .btn-ico { transform: translate(3px, 0); }
+
+/* =============================================================
+   CARD SPOTLIGHT (follows the pointer, set via --mx / --my)
+   ============================================================= */
+.spot { position: relative; }
+.spot::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .45s var(--ease-swift);
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(107, 74, 36, .24), transparent 62%);
+}
+.spot:hover::before, .spot:focus-within::before { opacity: 1; }
+
+/* =============================================================
+   NAV LINK UNDERLINE
+   ============================================================= */
+.navlink { position: relative; }
+.navlink::after {
+  content: "";
+  position: absolute;
+  left: 14px; right: 14px; bottom: 2px;
+  height: 1px;
+  background: var(--color-cream);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform .4s var(--ease-swift);
+}
+.navlink:hover::after { transform: scaleX(1); transform-origin: left; }
+.navlink.is-active::after {
+  transform: scaleX(1);
+  background: color-mix(in srgb, var(--color-cream) 42%, transparent);
+}
+
+.brandline { position: relative; }
+.brandline::after {
+  content: "";
+  position: absolute;
+  left: 0; bottom: -3px;
+  width: 0; height: 1px;
+  background: var(--color-cream);
+  transition: width .45s var(--ease-swift);
+}
+.brandline:hover::after { width: 100%; }
+
+/* =============================================================
+   HERO
+   ============================================================= */
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: .55;
+  background-image:
+    linear-gradient(rgba(225, 220, 201, .10) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(225, 220, 201, .10) 1px, transparent 1px);
+  background-size: clamp(60px, 7vw, 110px) clamp(60px, 7vw, 110px);
+  mask-image: radial-gradient(ellipse 75% 65% at 50% 45%, #000 20%, transparent 78%);
+  -webkit-mask-image: radial-gradient(ellipse 75% 65% at 50% 45%, #000 20%, transparent 78%);
+}
+.hero-fade {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 34vh;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent, rgba(31, 21, 12, .55) 70%, var(--color-ink));
+}
+
+.name-letter {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(.32em) rotate(2deg);
+  transition: opacity .9s var(--ease-soft), transform 1s var(--ease-soft);
+}
+.is-ready .name-letter { opacity: 1; transform: none; }
+
+.tube { position: relative; width: 1px; height: 46px; background: rgba(225, 220, 201, .18); overflow: hidden; }
+.tube::after {
+  content: "";
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%; height: 16px;
+  background: var(--color-cream);
+  animation: drop 2.4s var(--ease-swift) infinite;
+}
+@keyframes drop {
+  0%        { transform: translateY(-100%); }
+  60%, 100% { transform: translateY(300%); }
+}
+
+.pulse { box-shadow: 0 0 0 0 rgba(143, 160, 107, .5); animation: pulse 2.6s infinite; }
+@keyframes pulse {
+  70%  { box-shadow: 0 0 0 7px rgba(143, 160, 107, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(143, 160, 107, 0); }
+}
+
+/* =============================================================
+   PRELOADER
+   ============================================================= */
+.pre-letter { opacity: 0; transform: translateY(16px); animation: pre-letter .6s var(--ease-soft) forwards; }
+@keyframes pre-letter { to { opacity: 1; transform: none; } }
+.pre-bar { transform: scaleX(0); transform-origin: left; animation: pre-bar 1.25s var(--ease-swift) forwards; }
+@keyframes pre-bar { to { transform: scaleX(1); } }
+
+/* =============================================================
+   MODAL
+   ============================================================= */
+dialog.modal { border: 0; padding: 0; background: transparent; color: inherit; }
+dialog.modal::backdrop { background: rgba(0, 0, 0, .82); backdrop-filter: blur(7px); }
+.modal-panel {
+  opacity: 0;
+  transform: translateY(18px) scale(.985);
+  transition: transform .5s var(--ease-soft), opacity .4s var(--ease-soft);
+}
+dialog.modal.is-shown .modal-panel { opacity: 1; transform: none; }
+
+.bullet { position: relative; padding-left: 22px; }
+.bullet::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 11px;
+  width: 10px; height: 1px;
+  background: var(--color-ember);
+}
+
+/* =============================================================
+   TIMELINE NODE
+   ============================================================= */
+.tnode::before {
+  content: "";
+  position: absolute;
+  top: 9px;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  left: calc(clamp(26px, 4vw, 46px) * -1);
+  background: var(--color-ink);
+  border: 1px solid color-mix(in srgb, var(--color-cream) 42%, transparent);
+  transform: translateX(-3px) scale(.7);
+  transition: background-color .5s var(--ease-swift), transform .5s var(--ease-soft), border-color .5s;
+}
+.tnode.reveal-in::before { background: var(--color-cream); border-color: var(--color-cream); transform: translateX(-3px) scale(1); }
+
+/* =============================================================
+   REDUCED MOTION
+   ============================================================= */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+  .reveal { opacity: 1; translate: none; }
+  .name-letter { opacity: 1; transform: none; }
+  .grain { animation: none; }
+  .tube::after { display: none; }
+  .tnode::before { transform: translateX(-3px) scale(1); background: var(--color-cream); }
+}
